@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from .models import Relationship
 from .serializers import RelationshipSerializer, RelationshipCreateSerializer
 from core.permissions import IsOwnerOrReadOnly
+from utils.notification_helpers import create_notification
 
 # Create your views here.
 
@@ -18,7 +19,14 @@ class RelationshipListCreateView(generics.ListCreateAPIView):
         return RelationshipSerializer
     
     def perform_create(self, serializer):
-        serializer.save(from_user = self.request.user)
+        relationship = serializer.save(from_user=self.request.user)
+        if relationship.status == 'following':
+            create_notification(
+                relationship.to_user,
+                f"{self.request.user.username} started following you.",
+                'follow',
+                relationship
+            )
     
 
 class RelationshipDetailView(generics.RetrieveUpdateDestroyAPIView):

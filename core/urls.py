@@ -27,6 +27,7 @@ urlpatterns = [
     path('api/', include('posts.urls')),
     path('api/', include('comments.urls')),
     path('api/', include('relationships.urls')),
+    path('api/', include('notifications.urls')),
 ]
 
 if settings.DEBUG:

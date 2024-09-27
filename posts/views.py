@@ -5,6 +5,7 @@ from django.db.models import Count
 from .models import Post, Like, Hashtag, PostHashtag
 from .serializers import PostSerializer, PostCreateSerializer, LikeSerializer, HashtagSerializer, PostHashtagSerializer
 from core.permissions import IsAuthorOrReadOnly, IsPublicOrAuthor, IsAuthenticatedOrReadOnly
+from utils.notification_helpers import create_notification
 
 # Create your views here.
 
@@ -70,11 +71,17 @@ class LikeToggleView(APIView):
             return Response({"error": "Post not found"}, status = status.HTTP_404_NOT_FOUND)
         
         like, created = Like.objects.get_or_create(user=request.user, post=post)
-        if not created:
+        if created:
+            create_notification(
+                post.author,
+                f"{request.user.username} liked your post.",
+                'like',
+                post
+            )
+            return Response({"status": "liked"}, status=status.HTTP_201_CREATED)
+        else:
             like.delete()
             return Response({"status": "unliked"}, status=status.HTTP_200_OK)
-        return Response({"status": "liked"}, status=status.HTTP_201_CREATED)
-
 
 class HashtagListView(generics.ListAPIView):
     queryset = Hashtag.objects.annotate(posts_count=Count('posthashtag'))

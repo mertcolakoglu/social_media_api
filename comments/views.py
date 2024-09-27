@@ -3,6 +3,7 @@ from .models import Comment
 from .serializers import CommentSerializer, CommentCreateSerializer
 from posts.models import Post
 from core.permissions import IsCommentAuthorOrPostAuthorOrReadOnly, IsAuthenticatedOrReadOnly
+from utils.notification_helpers import create_notification
 
 # Create your views here.
 
@@ -19,7 +20,13 @@ class CommentListCreateView(generics.ListCreateAPIView):
     
     def perform_create(self, serializer):
         post = Post.objects.get(pk=self.kwargs['post_id'])
-        serializer.save(user = self.request.user, post = post)
+        comment = serializer.save(user=self.request.user, post=post)
+        create_notification(
+            post.author,
+            f"{self.request.user.username} commented on your post.",
+            'comment',
+            comment
+        )
     
 
 class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
