@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'comments',
     'relationships',
     'notifications',
+    'moderation',
 ]
 
 MIDDLEWARE = [
